@@ -1,0 +1,33 @@
+# Python
+*.pyc
+__pycache__/
+
+# Entornos virtuales
+venv/
+.env/
+
+# Django
+*.log
+*.pot
+*.pyc
+*.sqlite3
+*.pyo
+*.cover
+*.orig
+*.pyc
+*.pyo
+__pycache__/
+db.sqlite3
+
+# Archivos de configuración
+.env
+config/settings/local.py
+
+# Archivos y directorios creados por editores/IDEs
+.vscode/
+.idea/
+*.swp
+
+# Archivos de sistemas operativos
+.DS_Store
+Thumbs.db

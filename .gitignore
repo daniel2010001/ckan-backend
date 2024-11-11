@@ -18,6 +18,7 @@ venv/
 *.pyc
 *.pyo
 __pycache__/
+apps/*/migrations/
 db.sqlite3
 
 # Archivos de configuración

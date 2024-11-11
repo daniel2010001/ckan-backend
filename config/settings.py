@@ -11,12 +11,21 @@ enf_file = BASE_DIR / ".env"
 environ.Env.read_env(env_file=enf_file)
 
 # Define the environment variables
-SECRET_KEY: str = env.str("SECRET_KEY")
-DEBUG: bool = env.bool("DEBUG")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-DATABASES = {"default": env.db("DATABASE_URL")}
-CKAN_URL: ParseResult = env.url("CKAN_URL")
-CKAN_API_KEY: str = env.str("CKAN_API_KEY")
+SECRET_KEY: str = env.str(
+    "SECRET_KEY",
+    default="django-insecure-@zrjon_5sg0z*rutv+)7x2n_lg#v9+4^(dyc-&14q1%35c*_gw",
+)
+DEBUG: bool = env.bool("DEBUG", default=True)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
+
+DATABASES = {
+    "default": env.db(
+        "DATABASE_URL", default="postgres://user:password@localhost:5432/dbname"
+    )
+}
+
+CKAN_URL: ParseResult = env.url("CKAN_URL", default="http://localhost:5000")
+CKAN_API_KEY: str = env.str("CKAN_API_KEY", default="your-ckan-api-key")
 
 
 AUTH_USER_MODEL = "users.User"

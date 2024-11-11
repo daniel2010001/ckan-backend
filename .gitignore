@@ -4,6 +4,7 @@ __pycache__/
 
 # Entornos virtuales
 venv/
+.venv/
 .env/
 
 # Django
@@ -31,4 +32,3 @@ config/settings/local.py
 # Archivos de sistemas operativos
 .DS_Store
 Thumbs.db
-.env

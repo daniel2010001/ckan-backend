@@ -13,15 +13,14 @@ environ.Env.read_env(env_file=enf_file)
 # Define the environment variables
 SECRET_KEY: str = env.str("SECRET_KEY")
 DEBUG: bool = env.bool("DEBUG")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+DATABASES = {"default": env.db("DATABASE_URL")}
 CKAN_URL: ParseResult = env.url("CKAN_URL")
 CKAN_API_KEY: str = env.str("CKAN_API_KEY")
 
 
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.utils.CustomBackend"]
-
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -75,12 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {"default": env.db("DATABASE_URL")}
 
 
 # Password validation

@@ -22,8 +22,8 @@ Sigue estos pasos para instalar y ejecutar el proyecto:
 2. Crear un entorno virtual (opcional pero recomendado):
 
    ```sh
-   python -m venv venv
-   source venv/bin/activate  # En Windows, usar `venv\Scripts\activate`
+   python -m venv .venv
+   source .venv/bin/activate  # En Windows, usar `.venv\Scripts\activate`
    ```
 
 3. Instalar las dependencias:

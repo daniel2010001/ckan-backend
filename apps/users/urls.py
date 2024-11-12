@@ -1,10 +1,11 @@
 from django.urls import path
 from .views import (
-    UserListView,
+    CreateSuperUser,
     UserCreateView,
     UserDeleteView,
+    UserDetailView,
+    UserListView,
     UserRetrieveByNameView,
-    CreateSuperUser,
 )
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
         CreateSuperUser.as_view(),
         name="Crea un usuario administrador",
     ),
+    path("detail/", UserDetailView.as_view(), name="Detalle de un usuario"),
 ]

@@ -1,3 +1,4 @@
+from apps.utils import filter_sensitive_data
 from apps.users.models import User
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -24,7 +25,7 @@ class CkanApiView(APIView):
 
     def get_headers(self, request: Request):
         headers = {"Content-Type": "application/json"}
-        if not request.user:
+        if request.user.is_authenticated:
             user_profile = User.objects.get(name=request.user.name)
             if user_profile and user_profile.token:
                 headers["Authorization"] = user_profile.token
@@ -35,7 +36,7 @@ class CkanApiView(APIView):
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return Response(
-                {
+                data={
                     "error": {"__type": "Not Found Error", "message": "Invalid JSON"},
                     "success": False,
                 },
@@ -47,25 +48,97 @@ class CkanApiView(APIView):
         query_params = request.META["QUERY_STRING"]
         url = self.get_ckan_url(ckan_service, query_params)
         headers = self.get_headers(request)
-        response = requests.get(url=url, headers=headers)
-        return Response(response.json(), status=response.status_code)
+        try:
+            response = requests.get(url=url, headers=headers)
+        except requests.exceptions.ConnectionError:
+            return Response(
+                data={
+                    "error": {
+                        "__type": "Not Found Error",
+                        "message": "Connection Error",
+                    },
+                    "success": False,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        try:
+            data = filter_sensitive_data(response.json(), ["help"])
+        except ValueError:
+            return Response(
+                {"error": "Invalid JSON"}, status=status.HTTP_502_BAD_GATEWAY
+            )
+        return Response(data=data, status=response.status_code)
 
     def post(self, request: Request, ckan_service: str):
         url = self.get_ckan_url(ckan_service)
         headers = self.get_headers(request)
-        data = self.get_data(request)
-        response = requests.post(url=url, headers=headers, json=data)
-        return Response(response.json(), status=response.status_code)
+        json = self.get_data(request)
+        try:
+            response = requests.post(url=url, headers=headers, json=json)
+        except requests.exceptions.ConnectionError:
+            return Response(
+                data={
+                    "error": {
+                        "__type": "Not Found Error",
+                        "message": "Connection Error",
+                    },
+                    "success": False,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        try:
+            data = filter_sensitive_data(response.json(), ["help"])
+        except ValueError:
+            return Response(
+                {"error": "Invalid JSON"}, status=status.HTTP_502_BAD_GATEWAY
+            )
+        return Response(data=data, status=response.status_code)
 
     def put(self, request: Request, ckan_service: str):
         url = self.get_ckan_url(ckan_service)
         headers = self.get_headers(request)
-        data = self.get_data(request)
-        response = requests.post(url=url, headers=headers, json=data)
-        return Response(response.json(), status=response.status_code)
+        json = self.get_data(request)
+        try:
+            response = requests.put(url=url, headers=headers, json=json)
+        except requests.exceptions.ConnectionError:
+            return Response(
+                data={
+                    "error": {
+                        "__type": "Not Found Error",
+                        "message": "Connection Error",
+                    },
+                    "success": False,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        try:
+            data = filter_sensitive_data(response.json(), ["help"])
+        except ValueError:
+            return Response(
+                {"error": "Invalid JSON"}, status=status.HTTP_502_BAD_GATEWAY
+            )
+        return Response(data=data, status=response.status_code)
 
     def delete(self, request: Request, ckan_service: str):
         url = self.get_ckan_url(ckan_service)
         headers = self.get_headers(request)
-        response = requests.delete(url=url, headers=headers)
-        return Response(response.json(), status=response.status_code)
+        try:
+            response = requests.delete(url=url, headers=headers)
+        except requests.exceptions.ConnectionError:
+            return Response(
+                data={
+                    "error": {
+                        "__type": "Not Found Error",
+                        "message": "Connection Error",
+                    },
+                    "success": False,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        try:
+            data = filter_sensitive_data(response.json(), ["help"])
+        except ValueError:
+            return Response(
+                {"error": "Invalid JSON"}, status=status.HTTP_502_BAD_GATEWAY
+            )
+        return Response(data=data, status=response.status_code)

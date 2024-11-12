@@ -1,10 +1,11 @@
+from apps.utils import filter_sensitive_data
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.response import Response
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions
 from .models import User
 from .serializers import UserSerializer
-from .utils import create_ckan_user, filter_sensitive_data
+from .utils import create_ckan_user, get_ckan_user
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -17,22 +18,14 @@ class UserCreateView(UserView, generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         data["with_apitoken"] = True
-        ckan_response = create_ckan_user(data)
-        if ckan_response["success"]:
-            print(ckan_response)
-            data["token"] = ckan_response["result"]["token"]
-            ckan_response["result"] = filter_sensitive_data(
-                ckan_response["result"], ["token"]
-            )
+        response, status = create_ckan_user(data, request.headers)
+        if response["success"]:
+            data["token"] = response["result"]["token"]
+            response["result"] = filter_sensitive_data(response["result"], ["token"])
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            headers = super().get_success_headers(serializer.data)
-            return Response(
-                ckan_response, status=status.HTTP_201_CREATED, headers=headers
-            )
-        else:
-            return Response(ckan_response, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response, status=status)
 
 
 class UserDetailView(generics.RetrieveAPIView):
@@ -41,7 +34,8 @@ class UserDetailView(generics.RetrieveAPIView):
     def get(self, request):
         user = request.user
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        response, status = get_ckan_user(serializer, request.headers)
+        return Response(response, status=status)
 
 
 class AdminUserView(UserView):

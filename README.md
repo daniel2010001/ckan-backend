@@ -34,7 +34,7 @@ Sigue estos pasos para instalar y ejecutar el proyecto:
 
 4. Configurar las variables de entorno:
 
-   - Crea un archivo `.env` en el directorio `config` con las siguientes variables:
+   - Crea un archivo `.env` en el directorio principal con las siguientes variables:
      ```sh
      SECRET_KEY='tu_clave_secreta_aqui'
      DEBUG=True

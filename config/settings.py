@@ -7,8 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Read environment variables from .env file
 env = environ.Env()
-enf_file = BASE_DIR / ".env"
-environ.Env.read_env(env_file=enf_file)
+environ.Env.read_env()
 
 # Define the environment variables
 SECRET_KEY: str = env.str(

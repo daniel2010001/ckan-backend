@@ -1,5 +1,6 @@
 # utils.py
 from apps.ckan.views import CkanApiView
+from django.db.models import Q
 from django.contrib.auth.backends import ModelBackend
 from rest_framework.test import APIRequestFactory
 from .models import User
@@ -8,12 +9,9 @@ import json
 
 class CustomBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        try:
-            user = User.objects.get(name=username)
-            if user.check_password(password) and user.is_active:
-                return user
-        except User.DoesNotExist:
-            return None
+        user = super().authenticate(request, username, password, **kwargs)
+        if user and user.is_active:
+            return user
 
 
 def create_ckan_user(data, headers):

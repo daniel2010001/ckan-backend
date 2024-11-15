@@ -1,6 +1,6 @@
-import environ
-from urllib.parse import ParseResult
 from pathlib import Path
+from urllib.parse import ParseResult
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

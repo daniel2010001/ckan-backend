@@ -40,6 +40,7 @@ Sigue estos pasos para instalar y ejecutar el proyecto:
      DEBUG=True
      ALLOWED_HOSTS=localhost,127.0.0.1
      DATABASE_URL='postgres://USER:PASSWORD@HOST:PORT/DBNAME'
+     CLIENTS_URL=http://localhost:5173,http://localhost:4000
      CKAN_URL='URL_DE_TU_INSTANCIA_CKAN'
      CKAN_API_KEY='TU_CKAN_API_KEY'
      ```

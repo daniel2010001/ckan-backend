@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import ParseResult
 import environ
@@ -23,9 +24,10 @@ DATABASES = {
     )
 }
 
+CORS_ALLOWED_ORIGINS = env.list("CLIENTS_URL", default=["http://localhost:5173"])
+
 CKAN_URL: ParseResult = env.url("CKAN_URL", default="http://localhost:5000")
 CKAN_API_KEY: str = env.str("CKAN_API_KEY", default="your-ckan-api-key")
-
 
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.utils.CustomBackend"]
@@ -42,6 +44,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",  # Django REST Framework
     "rest_framework_simplejwt",  # Autenticación JWT
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
     "apps.ckan",
     "apps.users",
 ]
@@ -53,6 +57,34 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
 
+SIMPLE_JWT = {
+    # Sliding token configuration
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    # Access and refresh token configuration
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(weeks=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
+    # JWT configuration
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JTI_CLAIM": "jti",
+    # JWT authentication configuration
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "AUTH_TOKEN_CLASSES": (
+        "rest_framework_simplejwt.tokens.AccessToken",
+        "rest_framework_simplejwt.tokens.SlidingToken",
+    ),
+    "TOKEN_TYPE_CLAIM": "token_type",
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -61,6 +93,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

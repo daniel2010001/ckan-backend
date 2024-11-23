@@ -15,12 +15,12 @@ urlpatterns = [
     path("login/", TokenObtainPairView.as_view()),
     # Refrescar access token
     path("login/refresh/", TokenRefreshView.as_view()),
-    # Validar access token
-    path("login/verify/", TokenVerifyView.as_view()),
-    # Desconectar, revocar refresh token
-    path("logout/", TokenBlacklistView.as_view()),
     # Autenticar sliding, obtener solo un token ({token: str})
     path("sliding/", TokenObtainSlidingView.as_view()),
     # Refrescar sliding
     path("sliding/refresh/", TokenRefreshSlidingView.as_view()),
+    # Validar token (validar access, refresh y sliding)
+    path("verify-token/", TokenVerifyView.as_view()),
+    # Desconectar, revocar refresh token
+    path("logout/", TokenBlacklistView.as_view()),
 ]

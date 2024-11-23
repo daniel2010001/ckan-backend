@@ -1,6 +1,7 @@
 from apps.utils import filter_sensitive_data
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from .models import User
@@ -31,7 +32,7 @@ class UserCreateView(UserView, generics.CreateAPIView):
 class UserDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request):
         user = request.user
         serializer = UserSerializer(user)
         response, status = get_ckan_user(serializer, request.headers)

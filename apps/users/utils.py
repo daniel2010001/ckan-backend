@@ -1,9 +1,7 @@
 # utils.py
 from apps.ckan.views import CkanApiView
-from django.db.models import Q
 from django.contrib.auth.backends import ModelBackend
 from rest_framework.test import APIRequestFactory
-from .models import User
 import json
 
 
@@ -20,7 +18,7 @@ def create_ckan_user(data, headers):
         "/ckan/user_create/",
         json.dumps(data),
         content_type="application/json",
-        headers=headers,
+        **headers,
     )
     view = CkanApiView.as_view()
     response = view(request, ckan_service="user_create")
@@ -32,7 +30,7 @@ def get_ckan_user(userSerializer, headers):
     request = factory.get(
         f"/ckan/user_show/?id={userSerializer.data['name']}",
         content_type="application/json",
-        headers=headers,
+        **headers,
     )
     view = CkanApiView.as_view()
     response = view(request, ckan_service="user_show")

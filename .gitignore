@@ -29,6 +29,7 @@ config/settings/local.py
 .vscode/
 .idea/
 *.swp
+media/
 
 # Archivos de sistemas operativos
 .DS_Store

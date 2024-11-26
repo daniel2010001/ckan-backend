@@ -32,6 +32,8 @@ CKAN_API_KEY: str = env.str("CKAN_API_KEY", default="your-ckan-api-key")
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.utils.CustomBackend"]
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = (BASE_DIR / "media").absolute()
 
 # Application definition
 
@@ -59,30 +61,22 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # Sliding token configuration
-    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "SLIDING_TOKEN_LIFETIME": timedelta(seconds=10),
+    # "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=2),
     # Access and refresh token configuration
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(weeks=1),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": False,
-    # JWT configuration
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    "AUDIENCE": None,
-    "ISSUER": None,
-    "JTI_CLAIM": "jti",
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    # Blacklist configuration
+    "ROTATE_REFRESH_TOKENS": False,  # Rotar tokens de refresco en lugar de borrarlos
+    "BLACKLIST_AFTER_ROTATION": False,  # Borrar tokens de refresco después de rotar
+    "UPDATE_LAST_LOGIN": False,  # Actualizar la última fecha de inicio de sesión luego de rotar
     # JWT authentication configuration
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "AUTH_TOKEN_CLASSES": (
+    "AUTH_TOKEN_CLASSES": (  # Clases de token a utilizar para la autenticación
         "rest_framework_simplejwt.tokens.AccessToken",
         "rest_framework_simplejwt.tokens.SlidingToken",
     ),
-    "TOKEN_TYPE_CLAIM": "token_type",
+    "LEEWAY": 0,  # Tiempo de espera para la validación de token
 }
 
 MIDDLEWARE = [

@@ -18,15 +18,24 @@ class UserView(generics.GenericAPIView):
 class UserCreateView(UserView, generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
-        data["with_apitoken"] = True
-        response, status = create_ckan_user(data, request.headers)
-        if response["success"]:
-            data["token"] = response["result"]["token"]
-            response["result"] = filter_sensitive_data(response["result"], ["token"])
+        data["with_apitoken"] = True  # Crear token de acceso
+        data.pop("profile_picture", None)  # No se envía la imagen de perfil
+        payload, status = create_ckan_user(data, request.headers)
+        if payload["success"]:
+            data["id"] = payload["result"]["id"]
+            data["token"] = payload["result"]["token"]
+            if "profile_picture" in request.data:
+                data["profile_picture"] = request.data["profile_picture"]
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-        return Response(response, status=status)
+            # TODO: una vez guardado el usuario en django
+            # actualizar la image_url en CKAN con el profile_picture_url de Django
+            payload["result"]["image_url"] = serializer.data["profile_picture_url"]
+            payload["result"] = filter_sensitive_data(
+                payload["result"], ["token", "apikey", "email_hash"]
+            )
+        return Response(payload, status=status)
 
 
 class UserDetailView(generics.RetrieveAPIView):

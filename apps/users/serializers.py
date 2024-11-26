@@ -5,11 +5,12 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_picture_url = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = "__all__"
         read_only_fields = [
-            "id",
             "last_login",
             "created_at",
             "updated_at",
@@ -22,11 +23,14 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "password": {"write_only": True},
+            "profile_picture": {"write_only": True},
         }
 
     def create(self, validated_data) -> User:
         user_data = validated_data.copy()
         password = user_data.pop("password", None)
+        if "id" not in user_data:
+            user_data["id"] = user_data["name"]
         user = User(**user_data)
         user.set_password(password)
         user.save()
@@ -39,3 +43,9 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+    def get_profile_picture_url(self, obj):
+        request = self.context.get("request")
+        if obj.profile_picture:
+            return request.build_absolute_uri(obj.profile_picture.url)
+        return None

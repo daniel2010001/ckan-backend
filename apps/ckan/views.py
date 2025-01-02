@@ -1,24 +1,27 @@
+import json
+import requests
+from django.http import QueryDict
 from apps.utils import filter_sensitive_data
 from apps.users.models import User
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_502_BAD_GATEWAY
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from urllib.parse import ParseResult
-import requests
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CkanApiView(APIView):
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
     permission_classes = [permissions.AllowAny]
 
-    def ckan_error_response(
-        self, message: str, status_code: int = HTTP_400_BAD_REQUEST
-    ):
+    def ckan_error_response(self, message: str, status_code: int = 400):
         error_response = {
             "success": False,
             "error": {"message": message, "__type": "CKANError"},
@@ -32,47 +35,44 @@ class CkanApiView(APIView):
             url += f"?{query_params}"
         return url
 
-    def get_headers(self, request: Request):
-        headers = {"Content-Type": "application/json"}
+    def get_payload(self, request: Request):
+        fields = {}
+        for key, value in request.data.items():
+            if not hasattr(value, "read"):
+                fields[key] = (None, str(value), "text/plain")
+        for key, file in request.FILES.items():
+            fields[key] = (file.name, file, file.content_type)
+        m = MultipartEncoder(fields=fields)
+        headers = {"Content-Type": m.content_type}
         if request.user and request.user.is_authenticated:
-            user = User.objects.get(name=request.user.name)
-            if user and user.token:
-                headers["Authorization"] = user.token
-        return headers
-
-    def get_data(self, request: Request):
-        data = request.data
-        if not data:
-            return self.ckan_error_response(message="Invalid JSON")
-        return data
+            headers["Authorization"] = request.user.token
+        return headers, m
 
     def query(self, request: Request, ckan_service: str):
         query_params = request.META.get("QUERY_STRING", "")
         url = self.get_ckan_url(ckan_service, query_params)
-        headers = self.get_headers(request)
-        data = self.get_data(request)
+        headers, data = self.get_payload(request)
         try:
             match request.method:
                 case "GET":
                     response = requests.get(url=url, headers=headers)
                 case "POST":
-                    response = requests.post(url=url, headers=headers, json=data)
+                    response = requests.post(url=url, headers=headers, data=data)
                 case "PUT":
-                    response = requests.put(url=url, headers=headers, json=data)
+                    response = requests.put(url=url, headers=headers, data=data)
                 case "DELETE":
                     response = requests.delete(url=url, headers=headers)
                 case _:
                     return self.ckan_error_response("Invalid HTTP Method")
         except requests.exceptions.ConnectionError:
             return self.ckan_error_response(
-                message="Connection Error", status_code=HTTP_502_BAD_GATEWAY
+                message="No se pudo conectar con el servidor CKAN.",
+                status_code=502,
             )
         try:
             data = filter_sensitive_data(response.json(), ["help"])
         except ValueError:
-            return self.ckan_error_response(
-                message="Invalid JSON", status_code=HTTP_502_BAD_GATEWAY
-            )
+            return self.ckan_error_response(message="Invalid JSON", status_code=502)
         return Response(data=data, status=response.status_code)
 
     def get(self, request: Request, ckan_service: str):

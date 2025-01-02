@@ -61,7 +61,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # Sliding token configuration
-    "SLIDING_TOKEN_LIFETIME": timedelta(seconds=10),
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=10),
     # "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=2),
     # Access and refresh token configuration

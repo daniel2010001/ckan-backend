@@ -43,8 +43,16 @@ class UserDetailView(generics.RetrieveAPIView):
 
     def get(self, request: Request):
         user = request.user
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={"request": request})
         response, status = get_ckan_user(serializer, request.headers)
+        if response["success"]:
+            response["result"] = filter_sensitive_data(
+                response["result"], ["token", "apikey", "email_hash"]
+            )
+            response["result"]["image_url"] = serializer.data["profile_picture_url"]
+            response["result"]["image_display_url"] = serializer.data[
+                "profile_picture_url"
+            ]
         return Response(response, status=status)
 
 

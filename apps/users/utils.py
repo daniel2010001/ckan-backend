@@ -30,7 +30,7 @@ def get_ckan_user(userSerializer, headers):
     request = factory.get(
         f"/ckan/user_show/?id={userSerializer.data['name']}",
         content_type="application/json",
-        **headers,
+        headers=headers,
     )
     view = CkanApiView.as_view()
     response = view(request, ckan_service="user_show")

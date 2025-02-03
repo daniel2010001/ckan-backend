@@ -1,3 +1,4 @@
+import io
 import json
 import requests
 from django.http import QueryDict
@@ -36,17 +37,23 @@ class CkanApiView(APIView):
         return url
 
     def get_payload(self, request: Request):
+        if not "multipart/form-data" in request.headers.get("Content-Type"):
+            headers = {"Content-Type": request.headers.get("Content-Type")}
+            if request.user and request.user.is_authenticated:
+                headers["Authorization"] = request.user.token
+            return headers, json.dumps(request.data)
+
         fields = {}
         for key, value in request.data.items():
             if not hasattr(value, "read"):
                 fields[key] = (None, str(value), "text/plain")
         for key, file in request.FILES.items():
             fields[key] = (file.name, file, file.content_type)
-        m = MultipartEncoder(fields=fields)
-        headers = {"Content-Type": m.content_type}
+        encoder = MultipartEncoder(fields=fields)
+        headers = {"Content-Type": encoder.content_type}
         if request.user and request.user.is_authenticated:
             headers["Authorization"] = request.user.token
-        return headers, m
+        return headers, encoder
 
     def query(self, request: Request, ckan_service: str):
         query_params = request.META.get("QUERY_STRING", "")
@@ -62,6 +69,8 @@ class CkanApiView(APIView):
                     response = requests.put(url=url, headers=headers, data=data)
                 case "DELETE":
                     response = requests.delete(url=url, headers=headers)
+                case "PATCH":
+                    response = requests.patch(url=url, headers=headers, data=data)
                 case _:
                     return self.ckan_error_response("Invalid HTTP Method")
         except requests.exceptions.ConnectionError:
@@ -70,7 +79,9 @@ class CkanApiView(APIView):
                 status_code=502,
             )
         try:
-            data = filter_sensitive_data(response.json(), ["help"])
+            data = filter_sensitive_data(
+                response.json(), ["help", "ckan_url", "original_url", "email_hash"]
+            )
         except ValueError:
             return self.ckan_error_response(message="Invalid JSON", status_code=502)
         return Response(data=data, status=response.status_code)
